@@ -56,7 +56,7 @@ Measured on a 43-second 1080p60 film of a 77,000-vertex scene:
 | 16 CPU threads, no GPU | standard | 42 min |
 | 8 CPU threads, no GPU | draft | 33 min |
 
-These were measured with a server CPU limited to that many threads and a 48 GB workstation GPU, so a typical gaming GPU will be slower. A heavy scene takes longer: a 1,000,000-vertex scene took about 15 minutes with the same GPU. Re-filming the same file with different speed or style reuses the rendered shots and takes a few minutes.
+These were measured with a server CPU limited to that many threads and a 48 GB workstation GPU, so a typical gaming GPU will be slower. The same film in 4K took about 10 minutes with 35 CPU threads and one GPU. A heavy scene takes longer: a 1,000,000-vertex scene took about 15 minutes with the same GPU. Re-filming the same file with different speed or style reuses the rendered shots and takes a few minutes.
 
 Hardware is detected automatically. To see what was found:
 
