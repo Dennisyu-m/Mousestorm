@@ -1,0 +1,308 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mousestorm</title>
+<style>
+@font-face{font-family:Inter;src:url(/fonts/Inter.ttf);font-weight:100 900;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url(/fonts/JetBrainsMono.ttf);font-weight:100 800;font-display:swap}
+:root{--bg:#0b0c10;--panel:#14161c;--panel2:#1b1e26;--line:#272b35;--text:#e4e7ee;--dim:#8a91a0;--accent:#ff8a3d;--blue:#4f8cff;--teal:#3ddcc0;--rose:#ff5a7a;--gold:#ffd166}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 Inter,"Segoe UI",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;overflow-x:hidden}
+canvas#swarm{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+main{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:30px 24px 60px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:34px}
+.logo{font-weight:800;font-size:20px;letter-spacing:-.02em}
+header .spacer{flex:1}
+.lang{background:none;border:1px solid var(--line);color:var(--dim);border-radius:7px;padding:5px 11px;font:inherit;font-size:13px;cursor:pointer}
+.lang:hover{color:var(--text);border-color:#3a3f4c}
+.gh{color:var(--dim);font-size:13px}
+h1{font-size:clamp(36px,6.4vw,60px);line-height:1.04;letter-spacing:-.035em;margin:0 0 14px;font-weight:800}
+h1 em{font-style:normal;background:linear-gradient(95deg,var(--accent),var(--rose) 55%,var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{color:var(--dim);font-size:18px;max-width:640px;margin:0 0 30px}
+#drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:228px;border:1.6px dashed #3a3f4d;border-radius:18px;background:rgba(20,22,28,.74);backdrop-filter:blur(6px);cursor:pointer;transition:.18s;text-align:center;padding:26px}
+#drop:hover{border-color:#566078}
+#drop.over{border-color:var(--accent);background:rgba(255,138,61,.09);transform:scale(1.008)}
+#drop b{font-size:21px;letter-spacing:-.01em}
+#drop span{color:var(--dim)}
+#drop .file{color:var(--accent);font-weight:600;font-size:17px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:14px 0}
+.card{background:rgba(20,22,28,.84);border:1px solid var(--line);border-radius:14px;padding:15px 17px;backdrop-filter:blur(6px)}
+.card label{display:flex;justify-content:space-between;align-items:baseline;font-weight:600;font-size:14px;margin-bottom:10px}
+.card label output{font:600 14px ui-monospace,"JetBrains Mono",Consolas,monospace;color:var(--gold)}
+.seg{display:flex;flex-wrap:wrap;gap:5px}
+.seg button{flex:1;min-width:52px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);padding:7px 8px;border-radius:8px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.12s}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+input[type=range]{width:100%;accent-color:var(--accent);height:22px;margin:0}
+.hint{color:var(--dim);font-size:12.5px;margin-top:5px}
+.devs{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.dev{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font:inherit;cursor:pointer;transition:.12s;min-width:0}
+.dev:hover{border-color:#566078}
+.dev.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.dev b{font-size:13.5px;letter-spacing:.02em}
+.dev span{font-size:12.5px;overflow-wrap:anywhere;opacity:.86}
+.row{display:flex;align-items:center;justify-content:space-between}
+.switch{position:relative;width:42px;height:24px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;cursor:pointer;transition:.15s}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#7c8494;transition:.15s}
+.switch.on{background:var(--accent);border-color:var(--accent)}.switch.on::after{left:20px;background:#fff}
+.adv{margin:12px 0;background:rgba(20,22,28,.84);border:1px solid var(--line);border-radius:14px;padding:4px 17px}
+.adv>summary{cursor:pointer;font-weight:700;padding:12px 0;list-style-position:inside}
+.adv h3{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--dim);margin:18px 0 8px;border-top:1px solid var(--line);padding-top:14px}
+.advgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px 22px}
+.opt{font-size:13px}.opt .lab{display:flex;justify-content:space-between;margin-bottom:5px;color:var(--text)}
+.opt .lab output{font:600 12.5px ui-monospace,"JetBrains Mono",Consolas,monospace;color:var(--gold)}
+.opt input[type=text]{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:6px 9px;border-radius:7px;font:inherit}
+.opt input[type=color]{width:46px;height:28px;background:none;border:1px solid var(--line);border-radius:7px;padding:1px;vertical-align:middle}
+.opt .clr{background:none;border:0;color:var(--dim);cursor:pointer;font:inherit;margin-left:8px;text-decoration:underline}
+.seg.small button{min-width:40px;padding:5px 7px;font-size:12px}
+#sbview{display:none;width:100%;border-radius:12px;border:1px solid var(--line);margin-top:10px}
+#sbmsg{color:var(--dim);font-size:13px;margin-top:6px;min-height:19px}
+#go{width:100%;margin-top:6px;padding:16px;border:0;border-radius:13px;font:inherit;font-size:17px;font-weight:700;color:#14100c;background:linear-gradient(95deg,#ffa35f,var(--accent));cursor:pointer;transition:.15s;letter-spacing:-.01em}
+#go:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+#go:disabled{opacity:.36;cursor:not-allowed}
+.warn{background:rgba(255,90,122,.12);border:1px solid rgba(255,90,122,.4);padding:11px 15px;border-radius:11px;margin-bottom:12px;font-size:14px}
+#run,#done{display:none}
+.stages{display:flex;gap:6px;margin:16px 0 10px;flex-wrap:wrap}
+.st{flex:1;min-width:130px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--dim);position:relative;overflow:hidden}
+.st i{position:absolute;left:0;bottom:0;height:3px;background:var(--accent);width:0;transition:width .3s}
+.st.on{color:var(--text);border-color:#454c5c}.st.ok{color:var(--teal)}.st.ok i{background:var(--teal)}
+#msg{font:13.5px ui-monospace,"JetBrains Mono",Consolas,monospace;color:var(--gold);min-height:21px}
+#pv{display:block;width:100%;max-height:62vh;background:#101217;border-radius:14px;border:1px solid var(--line);margin-top:10px;object-fit:contain}
+video,#sheet{display:block;width:100%;max-height:78vh;border-radius:14px;border:1px solid var(--line);background:#000}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 24px}
+.btn{display:inline-block;padding:10px 16px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);color:var(--text);text-decoration:none;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit}
+.btn.main{background:var(--accent);border-color:var(--accent);color:#14100c}
+.btn:hover{filter:brightness(1.15)}
+h2{font-size:22px;letter-spacing:-.02em;margin:26px 0 12px}
+.stats{display:flex;gap:24px;flex-wrap:wrap;color:var(--dim);font-size:14px;margin-top:10px}.stats b{color:var(--text);font:700 18px ui-monospace,"JetBrains Mono",Consolas,monospace;display:block}
+.stills{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
+.stills img{width:100%;border-radius:9px;object-fit:cover;display:block;border:1px solid var(--line)}
+pre.err{background:#1d0f13;border:1px solid #57222f;padding:14px;border-radius:11px;overflow:auto;font-size:12px;max-height:340px;white-space:pre-wrap}
+footer{color:#5c6371;font-size:12.5px;margin-top:44px}
+@media (max-width:640px){main{padding:20px 16px 40px}.st{min-width:44%}}
+</style>
+</head>
+<body>
+<canvas id="swarm"></canvas>
+<main>
+<header>
+  <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><path d="M3 2v18l5-4 3.4 7.6 3.2-1.4L11.3 15H17z" fill="#ff8a3d"/><path d="M15 9v13l3.6-2.9 2.4 5.5 2.4-1 -2.4-5.5H26z" fill="#4f8cff" stroke="#0b0c10"/></svg>
+  <div class="logo">Mousestorm</div>
+  <div class="spacer"></div>
+  <button class="lang" id="lang">中文</button>
+</header>
+
+<section id="setup">
+  <h1 data-t="h1">Every .blend deserves<br>a <em>thousand mice.</em></h1>
+  <p class="lede" data-t="lede">Drop in any AI-generated Blender file. A swarm of mice rebuilds it in front of the camera — then a full multi-camera showcase. It finds your CPU, memory and GPU by itself, and leaves a busy GPU alone.</p>
+  <div id="warn"></div>
+  <div id="drop"><b data-t="drop">Drop a .blend file here</b><span data-t="browse">or click to browse</span></div>
+  <input id="file" type="file" accept=".blend,.msteps" hidden>
+  <div id="stepsline" class="hint" style="margin-top:8px"></div>
+
+  <div class="card" style="margin-top:14px"><label data-t="preset">Style preset</label><div class="seg" id="preset"></div><div class="hint" id="presethint"></div></div>
+  <div class="card" style="margin-top:14px">
+    <label data-t="device">Render with</label>
+    <div class="devs" id="devs"></div>
+    <label style="margin-top:14px;margin-bottom:6px"><span data-t="cpuuse">CPU usage</span><output id="cpushare"></output></label>
+    <input id="cpuuse" type="range" min="10" max="100" value="55" style="width:100%">
+    <div class="hint" id="devhint"></div>
+  </div>
+  <div class="grid">
+    <div class="card"><label><span data-t="speed">Mouse speed</span><output id="speedv">×1</output></label><input id="speed" type="range" min="0" max="100" value="32"><div class="hint" data-t="speedh">How fast the swarm works. The film gets shorter as they speed up.</div></div>
+    <div class="card"><label><span data-t="duration">Film length</span><output id="durationv">Auto</output></label><input id="duration" type="range" min="0" max="180" value="0" step="5"><div class="hint" data-t="durationh">Auto follows the speed above. Pick a length and the speed is set for you.</div></div>
+    <div class="card"><label><span data-t="mice">Number of mice</span><output id="micev">Auto</output></label><input id="mice" type="range" min="0" max="320" value="0" step="4"><div class="hint" data-t="miceh">Auto picks the count from how much work there is.</div></div>
+    <div class="card"><label data-t="format">Output format</label><div class="seg" id="format"></div></div>
+    <div class="card"><label data-t="quality">Render quality</label><div class="seg" id="quality"></div></div>
+    <div class="card"><label data-t="aspect">Frame shape</label><div class="seg" id="aspect"></div></div>
+    <div class="card"><label data-t="resolution">Resolution</label><div class="seg" id="resolution"></div></div>
+    <div class="card"><label data-t="fps">Frame rate</label><div class="seg" id="fps"></div></div>
+    <div class="card"><label data-t="lighting">Lighting</label><div class="seg" id="lighting"></div></div>
+    <div class="card"><label><span data-t="showcase">Finale length</span><output id="showcasev">20 s</output></label><input id="showcase" type="range" min="8" max="60" value="20"></div>
+    <div class="card"><label data-t="sound">Soundtrack</label><div class="seg" id="soundtrack"></div></div>
+  </div>
+  <details class="adv"><summary data-t="adv">Advanced settings</summary><div id="advbody"></div><p><button class="btn" id="advreset" data-t="reset">Reset advanced settings</button></p></details>
+  <button class="btn" id="sb" disabled data-t="storyboard" style="width:100%;margin-bottom:8px">Quick storyboard (seconds, no render)</button>
+  <div id="sbmsg"></div><img id="sbview" alt="">
+  <button id="go" disabled data-t="start">Summon the mice</button>
+</section>
+
+<section id="run">
+  <h1 style="font-size:40px" id="rtitle">…</h1>
+  <div class="stages" id="stages"></div>
+  <div id="msg"></div>
+  <img id="pv" alt="" style="visibility:hidden" onload="this.style.visibility='visible'">
+  <p class="hint" data-t="tabhint">You can keep working. It runs at below-normal CPU priority and leaves a GPU that is in use alone.</p>
+  <button class="btn" id="stop" data-t="stop">Stop</button>
+</section>
+
+<section id="done">
+  <h1 style="font-size:40px" id="dtitle">Done</h1>
+  <video id="vid" controls autoplay loop muted playsinline></video>
+  <img id="sheet" style="display:none" alt="">
+  <div class="stats" id="stats"></div>
+  <div class="actions" id="actions"></div>
+  <h2 data-t="stills">Stills</h2>
+  <div class="stills" id="stills"></div>
+  <h2 id="posterh" data-t="poster">Swarm poster</h2>
+  <img id="poster" style="display:block;width:100%;border-radius:14px;border:1px solid var(--line)" alt="">
+  <h2 data-t="contact">Contact sheet</h2>
+  <img id="sheet2" style="display:block;width:100%;border-radius:14px;border:1px solid var(--line)" alt="">
+</section>
+
+<footer>Mousestorm · GPL-3.0-or-later · <span data-t="foot">Not affiliated with or endorsed by the Blender Foundation.</span></footer>
+</main>
+
+<script>
+const I18N={
+en:{h1:'Every .blend deserves<br>a <em>thousand mice.</em>',lede:'Drop in any AI-generated Blender file. A swarm of mice rebuilds it in front of the camera — then a full multi-camera showcase. It finds your CPU, memory and GPU by itself, and leaves a busy GPU alone.',drop:'Drop a .blend file here',browse:'or click to browse',speed:'Mouse speed',speedh:'How fast the swarm works. The film gets shorter as they speed up.',mice:'Number of mice',miceh:'Auto picks the count from how much work there is.',format:'Output format',quality:'Render quality',resolution:'Resolution',fps:'Frame rate',lighting:'Lighting',showcase:'Finale length',sound:'Soundtrack',preset:'Style preset',none:'None',adv:'Advanced settings',reset:'Reset advanced settings',storyboard:'Quick storyboard (seconds, no render)',poster:'Swarm poster',working:'Working…',aspect:'Frame shape',duration:'Film length',durationh:'Auto follows the speed above. Pick a length and the speed is set for you.',stop:'Stop',stopped:'Stopped',a:{'16:9':'16:9 Wide','9:16':'9:16 Phone','1:1':'1:1 Square'},st:{score:'Music + clicks',clicks:'Clicks only',off:'Silent'},start:'Summon the mice',tabhint:'You can keep working. It runs at below-normal CPU priority and leaves a GPU that is in use alone.',stills:'Stills',contact:'Contact sheet',foot:'Not affiliated with or endorsed by the Blender Foundation.',auto:'Auto',building:'The swarm is at work',done:'Finished',dl:'Download film',dls:'Contact sheet',again:'Make another',folder:'Saved to',dur:'Length',mi:'Mice',ops:'Operations',stage:{extract:'Reading file',plan:'Choreography',beauty:'Cycles beauty shots',frames:'Filming the swarm',done:'Done'},q:{draft:'Draft',standard:'Standard',high:'High'},l:{auto:'Auto',studio:'Studio',file:'From file'},err:'Something went wrong',noblender:'Blender was not found. Install it from blender.org, or set the MOUSESTORM_BLENDER environment variable and restart.',device:'Render with',auto:'Auto',busy:'busy',cpuuse:'CPU usage',threads:'threads',allgpus:'All GPUs',probing:'Looking for GPUs…',nogpu:'No GPU that Cycles can use was found.',devcpu:'A GPU is far faster. With only a 4-core CPU a film can take well over an hour.',devgpu:'The GPU does the rendering; the rest of the film still uses the CPU.',stepshint:'Optional: drop a .msteps step log as well. Only worth it for a professional demonstration; without one the operations are inferred from the model.',stepson:'Step log loaded: {n} steps, {o} object(s).',stepsoff:'Remove',notblend:'That does not look like a .blend file.'},
+zh:{h1:'每个 .blend 文件，<br>都值得<em>一千只鼠标。</em>',lede:'把 AI 生成的 Blender 文件拖进来，一大群鼠标当着镜头把它重新搭出来，再来一场全方位多机位展示。自动检测 CPU、内存和显卡，正在被占用的显卡不会碰。',drop:'把 .blend 文件拖到这里',browse:'或点击选择文件',speed:'鼠标速度',speedh:'鼠标干活有多快。越快，成片越短。',mice:'鼠标数量',miceh:'自动：根据工作量决定数量。',format:'输出格式',quality:'渲染质量',resolution:'分辨率',fps:'帧率',lighting:'灯光',showcase:'结尾展示时长',sound:'配乐',preset:'风格预设',none:'无',adv:'高级设置',reset:'重置高级设置',storyboard:'快速分镜预览（几秒钟，不渲染）',poster:'鼠标轨迹海报',working:'处理中…',aspect:'画幅',duration:'影片时长',durationh:'自动：跟随上面的速度。选一个时长，会自动算出速度。',stop:'停止',stopped:'已停止',a:{'16:9':'16:9 横屏','9:16':'9:16 竖屏','1:1':'1:1 方形'},st:{score:'音乐 + 点击声',clicks:'只有点击声',off:'静音'},start:'召唤鼠标',tabhint:'可以继续干别的。进程以低于正常的 CPU 优先级运行，正在被占用的显卡不会碰。',stills:'多机位照片',contact:'接触印样',foot:'与 Blender 基金会无关联，也未获其背书。',auto:'自动',building:'鼠标们正在开工',done:'完成',dl:'下载成片',dls:'接触印样',again:'再做一个',folder:'保存位置',dur:'时长',mi:'鼠标',ops:'操作数',stage:{extract:'读取文件',plan:'编排动作',beauty:'Cycles 精美渲染',frames:'拍摄鼠标群',done:'完成'},q:{draft:'草稿',standard:'标准',high:'高'},l:{auto:'自动',studio:'摄影棚',file:'使用文件'},err:'出错了',noblender:'没有找到 Blender。请到 blender.org 安装，或设置 MOUSESTORM_BLENDER 环境变量后重启。',device:'渲染设备',auto:'自动',busy:'被占用',cpuuse:'CPU 用量',threads:'线程',allgpus:'全部显卡',probing:'正在检测显卡…',nogpu:'没有检测到 Cycles 可用的显卡。',devcpu:'用显卡会快很多。只有 4 核 CPU 的话，一部片子可能要一个多小时。',devgpu:'精渲由显卡完成，影片其余部分仍使用 CPU。',stepshint:'可选：同时拖入 .msteps 步骤记录。只有专业演示才值得做，不提供时会根据模型自动推断操作。',stepson:'步骤记录：{n} 步，{o} 个物体。',stepsoff:'移除',notblend:'这不像是 .blend 文件。'}};
+let lang=(navigator.language||'en').startsWith('zh')?'zh':'en';
+const $=id=>document.getElementById(id);
+const T=()=>I18N[lang];
+function renderT(){document.documentElement.lang=lang;document.querySelectorAll('[data-t]').forEach(e=>{const k=e.dataset.t;if(T()[k])e.innerHTML=T()[k]});$('lang').textContent=lang==='zh'?'EN':'中文';
+  $('micev').textContent=+$('mice').value?$('mice').value:T().auto;if($('duration'))$('durationv').textContent=+$('duration').value?$('duration').value+' s':T().auto;
+  renderSegs();renderAdv();renderSteps();renderDevs();if(uploadName)$('drop').innerHTML=`<div class="file"></div><span></span>`,$('drop').firstChild.textContent=uploadName,$('drop').lastChild.textContent=T().browse;}
+$('lang').onclick=()=>{lang=lang==='zh'?'en':'zh';renderT()};
+
+const choice={preset:'none',format:'mp4',quality:'standard',aspect:'16:9',resolution:'1080p',fps:'60',lighting:'auto',soundtrack:'score',device:'auto',gpu:'',cpu_share:null};
+const segs={preset:['none'],format:['mp4','webm','mov','gif','webp','png'],quality:['draft','standard','high'],aspect:['16:9','9:16','1:1'],resolution:['720p','1080p','1440p','4k'],fps:['30','60'],lighting:['auto','studio','file'],soundtrack:['score','clicks','off']};
+function segLabel(k,v){if(k==='preset'){if(v==='none')return T().none;const p=OPT&&OPT.presets.find(x=>x.id===v);return p?(lang==='zh'?p.zh:v):v}if(k==='quality')return T().q[v];if(k==='aspect')return T().a[v];if(k==='soundtrack')return T().st[v];if(k==='lighting')return T().l[v];if(k==='fps')return v;if(k==='format')return v.toUpperCase();return v}
+let OPT=null,adv={};
+function curPreset(){return OPT&&OPT.presets.find(x=>x.id===choice.preset)}
+function applyPresetFilm(){const p=curPreset();if(!p)return;const f=p.film||{};if(f.aspect)choice.aspect=f.aspect;if(f.quality)choice.quality=f.quality;if(f.res)choice.resolution=f.res;if(f.duration){$('duration').value=f.duration;$('durationv').textContent=f.duration+' s'}renderSegs()}
+function optValue(o){if(o.key in adv)return adv[o.key];const p=curPreset();if(p&&p.opt&&o.key in p.opt)return p.opt[o.key];return o.default}
+function setAdv(k,v){adv[k]=v}
+function renderAdv(){if(!OPT)return;const root=$('advbody');root.innerHTML='';OPT.groups.forEach(g=>{const list=OPT.options.filter(o=>o.key.startsWith(g.id+'.'));if(!list.length)return;const h=document.createElement('h3');h.textContent=lang==='zh'?g.zh:g.en;root.appendChild(h);const grid=document.createElement('div');grid.className='advgrid';root.appendChild(grid);list.forEach(o=>grid.appendChild(optControl(o)))});const p=curPreset();$('presethint').textContent=p?(lang==='zh'?p.zh:p.en):''}
+function optControl(o){const box=document.createElement('div');box.className='opt';const lab=document.createElement('div');lab.className='lab';const name=document.createElement('span');name.textContent=lang==='zh'?o.zh:o.en;lab.appendChild(name);box.appendChild(lab);const val=optValue(o);
+  if(o.kind==='bool'){const sw=document.createElement('div');sw.className='switch'+(val?' on':'');sw.onclick=()=>{const v=!sw.classList.contains('on');sw.classList.toggle('on',v);setAdv(o.key,v)};lab.appendChild(sw)}
+  else if(o.kind==='int'||o.kind==='float'){const out=document.createElement('output');const r=document.createElement('input');r.type='range';r.min=o.lo;r.max=o.hi;r.step=o.kind==='int'?1:((o.hi-o.lo)/100);r.value=val;out.textContent=(+val).toFixed(o.kind==='int'?0:2);r.oninput=()=>{const v=o.kind==='int'?parseInt(r.value):parseFloat(r.value);out.textContent=v.toFixed(o.kind==='int'?0:2);setAdv(o.key,v)};lab.appendChild(out);box.appendChild(r)}
+  else if(o.kind==='choice'){const s=document.createElement('div');s.className='seg small';o.choices.forEach(c=>{const b=document.createElement('button');b.textContent=c;if(c===val)b.className='on';b.onclick=()=>{setAdv(o.key,c);renderAdv()};s.appendChild(b)});box.appendChild(s)}
+  else if(o.kind==='list'){const on=new Set(String(val).split(',').filter(Boolean));const s=document.createElement('div');s.className='seg small';o.choices.forEach(c=>{const b=document.createElement('button');b.textContent=c;if(on.has(c))b.className='on';b.onclick=()=>{on.has(c)?on.delete(c):on.add(c);setAdv(o.key,o.choices.filter(x=>on.has(x)).join(','));renderAdv()};s.appendChild(b)});box.appendChild(s)}
+  else if(o.kind==='color'){const c=document.createElement('input');c.type='color';c.value=val?'#'+val:'#808080';c.oninput=()=>setAdv(o.key,c.value.slice(1));const x=document.createElement('button');x.className='clr';x.textContent=T().auto;x.onclick=()=>{setAdv(o.key,'');renderAdv()};box.append(c,x)}
+  else{const t=document.createElement('input');t.type='text';t.value=val||'';t.oninput=()=>setAdv(o.key,t.value);box.appendChild(t)}
+  return box}
+function renderSegs(){for(const k in segs){const box=$(k);box.innerHTML='';segs[k].forEach(v=>{const b=document.createElement('button');b.textContent=segLabel(k,v);if(choice[k]===v)b.className='on';b.onclick=()=>{choice[k]=v;renderSegs();if(k==='preset'){applyPresetFilm();renderAdv()}};box.appendChild(b)})}}
+
+function speedOf(){const x=+$('speed').value/100;return Math.round(Math.pow(10,-0.6+x*1.9)*100)/100}
+$('speed').oninput=()=>{const s=speedOf();$('speedv').textContent='×'+(s>=10?s.toFixed(0):s>=1?s.toFixed(1):s.toFixed(2))};$('speed').oninput();
+$('mice').oninput=()=>{$('micev').textContent=+$('mice').value?$('mice').value:T().auto};
+$('showcase').oninput=()=>{$('showcasev').textContent=$('showcase').value+' s'};
+const durLabel=()=>{$('durationv').textContent=+$('duration').value?$('duration').value+' s':T().auto};$('duration').oninput=durLabel;
+
+let uploadId=null,uploadName=null;
+const drop=$('drop');
+drop.onclick=()=>$('file').click();
+$('file').onchange=e=>e.target.files[0]&&up(e.target.files[0]);
+['dragenter','dragover'].forEach(n=>addEventListener(n,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(n=>addEventListener(n,e=>{e.preventDefault();drop.classList.remove('over')}));
+addEventListener('drop',e=>{for(const f of e.dataTransfer.files)up(f)});
+
+function warn(msg){$('warn').innerHTML='';if(msg){const d=document.createElement('div');d.className='warn';d.textContent=msg;$('warn').appendChild(d)}}
+let DEV={state:'probing',gpus:[],cpu:{name:'',threads:4}};
+function devTile(title,sub,on,pick){const b=document.createElement('button');b.type='button';b.className='dev'+(on?' on':'');const t=document.createElement('b');t.textContent=title;const s=document.createElement('span');s.textContent=sub;b.append(t,s);b.onclick=()=>{pick();renderDevs()};return b}
+function renderDevs(){const box=$('devs');if(!box)return;box.textContent='';const t=T(),busy=DEV.busy||[];
+  const autoName=()=>{if(DEV.state==='probing')return t.probing;const a=DEV.auto;if(!a||!a.gpu)return 'CPU · '+(a?a.why:'');const i=DEV.gpus.findIndex(g=>g.id===a.gpu);return 'GPU '+(i+1)+' · '+DEV.gpus[i].name};
+  box.append(devTile(t.auto,autoName(),choice.device==='auto',()=>{choice.device='auto';choice.gpu=''}));
+  box.append(devTile('CPU',(DEV.cpu.name||'CPU')+' · '+DEV.cpu.threads+' '+t.threads,choice.device==='cpu',()=>{choice.device='cpu';choice.gpu=''}));
+  DEV.gpus.forEach((g,i)=>box.append(devTile('GPU '+(i+1)+' · '+g.backend+(busy.includes(g.id)?' · '+t.busy:''),g.name,choice.device==='gpu'&&choice.gpu===g.id,()=>{choice.device='gpu';choice.gpu=g.id})));
+  if(DEV.gpus.length>1)box.append(devTile(t.allgpus,DEV.gpus.length+' × GPU',choice.device==='gpu'&&!choice.gpu,()=>{choice.device='gpu';choice.gpu=''}));
+  const pct=choice.cpu_share==null?55:choice.cpu_share,n=Math.max(1,Math.round(DEV.cpu.threads*pct/100));$('cpushare').textContent=n+' '+t.threads+' · '+pct+'%'+(choice.cpu_share==null?' · '+t.auto:'');
+  $('devhint').textContent=DEV.state==='probing'?t.probing:(choice.device==='cpu'?t.devcpu:t.devgpu)}
+function pollDevs(){fetch('/api/devices').then(r=>r.json()).then(j=>{DEV=j;renderDevs();if(j.state==='probing')setTimeout(pollDevs,800)}).catch(()=>{})}
+$('cpuuse').oninput=e=>{choice.cpu_share=+e.target.value;renderDevs()};
+let stepsId=null,stepsInfo=null;
+function renderSteps(){const L=$('stepsline');L.textContent='';
+  if(stepsInfo){L.append(T().stepson.replace('{n}',stepsInfo.count).replace('{o}',stepsInfo.objects)+' ');const a=document.createElement('a');a.href='#';a.textContent=T().stepsoff;a.onclick=e=>{e.preventDefault();stepsId=stepsInfo=null;renderSteps()};L.append(a)}
+  else L.textContent=T().stepshint}
+async function upSteps(f){warn('');
+  const r=await fetch('/api/steps',{method:'POST',body:f});const j=await r.json();
+  if(!r.ok){warn(j.error);return}stepsId=j.steps;stepsInfo=j;renderSteps()}
+async function up(f){
+  if(f.name.toLowerCase().endsWith('.msteps'))return upSteps(f);
+  warn('');$('go').disabled=true;
+  if(!f.name.toLowerCase().endsWith('.blend')){warn(T().notblend);return}
+  drop.innerHTML='<div class="file"></div><span>…</span>';drop.firstChild.textContent=f.name;
+  const r=await fetch('/api/upload?name='+encodeURIComponent(f.name),{method:'POST',body:f});
+  const j=await r.json();
+  if(!r.ok){warn(j.error||T().notblend);drop.innerHTML='';renderT();return}
+  uploadId=j.upload;uploadName=j.name;drop.lastChild.textContent=(j.size/1048576).toFixed(1)+' MB';$('go').disabled=false;$('sb').disabled=false;
+}
+
+$('advreset').onclick=e=>{e.preventDefault();adv={};renderAdv()};
+$('sb').onclick=async()=>{
+  const body={upload:uploadId,steps:stepsId,storyboard:true,speed:speedOf(),mice:+$('mice').value,showcase:+$('showcase').value,duration:+$('duration').value,...choice,advanced:adv};if(body.preset==='none')delete body.preset;body.fps=+body.fps;
+  $('sb').disabled=true;$('sbmsg').textContent=T().working;
+  const r=await fetch('/api/render',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();if(!r.ok){$('sbmsg').textContent=j.error;$('sb').disabled=false;return}
+  const tick=()=>fetch('/api/job/'+j.job).then(x=>x.json()).then(s=>{$('sbmsg').textContent=s.msg||T().working;
+    if(s.state==='done'){const v=$('sbview');v.src='/files/'+j.job+'/'+encodeURIComponent(s.result.storyboard)+'?t='+Date.now();v.style.display='block';$('sbmsg').textContent=s.result.duration.toFixed(1)+' s · ×'+s.result.speed.toFixed(2)+' · '+s.result.mice+' · '+s.result.ops.toLocaleString();$('sb').disabled=false;return}
+    if(s.state==='error'){$('sbmsg').textContent=s.error;$('sb').disabled=false;return}setTimeout(tick,700)});tick();
+};
+$('go').onclick=async()=>{
+  const body={upload:uploadId,steps:stepsId,speed:speedOf(),mice:+$('mice').value,showcase:+$('showcase').value,duration:+$('duration').value,...choice,advanced:adv};if(body.preset==='none')delete body.preset;
+  body.fps=+body.fps;
+  const r=await fetch('/api/render',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const j=await r.json();if(!r.ok){warn(j.error);return}
+  $('setup').style.display='none';$('run').style.display='block';scrollTo(0,0);$('rtitle').textContent=T().building;
+  const box=$('stages');box.innerHTML='';['extract','plan','beauty','frames'].forEach(s=>{const d=document.createElement('div');d.className='st';d.id='st-'+s;d.innerHTML='<span></span><i></i>';d.firstChild.textContent=T().stage[s];box.appendChild(d)});
+  $('stop').onclick=()=>{$('stop').disabled=true;fetch('/api/job/'+j.job+'/cancel',{method:'POST'})};
+  poll(j.job);
+};
+
+function poll(id){
+  fetch('/api/job/'+id).then(r=>r.json()).then(j=>{
+    const order=['extract','plan','beauty','frames'];
+    const cur=order.indexOf(j.stage);
+    order.forEach((s,i)=>{const e=$('st-'+s);if(!e)return;e.className='st'+(i<cur||j.state==='done'?' ok':(i===cur?' on':''));const f=(j.fracs&&j.fracs[s])||0;e.lastChild.style.width=((i<cur||j.state==='done')?100:f*100)+'%'});
+    $('msg').textContent=j.msg||'';
+    if(j.state==='running')$('pv').src='/api/preview/'+id+'?t='+Date.now();
+    if(j.state==='error'){$('run').innerHTML='';const h=document.createElement('h1');h.style.fontSize='34px';h.textContent=T().err;const p=document.createElement('pre');p.className='err';p.textContent=j.error||'';const b=document.createElement('a');b.className='btn';b.textContent=T().again;b.href='/';$('run').append(h,p,b);return}
+    if(j.state==='cancelled'){location.href='/';return}
+    if(j.state==='done')return finished(id,j.result);
+    setTimeout(()=>poll(id),900);
+  }).catch(()=>setTimeout(()=>poll(id),1500));
+}
+function finished(id,r){
+  $('run').style.display='none';$('done').style.display='block';scrollTo(0,0);$('dtitle').textContent=T().done;
+  const base='/files/'+id+'/';
+  if(r.is_video){$('vid').src=base+encodeURIComponent(r.video)}else{$('vid').style.display='none';if(r.fmt!=='png'){$('sheet').src=base+encodeURIComponent(r.video);$('sheet').style.display='block'}}
+  $('stats').innerHTML='';
+  [[T().dur,r.duration.toFixed(1)+' s'],[T().speed,'×'+r.speed.toFixed(2)],[T().mi,r.mice],[T().ops,r.ops.toLocaleString()]].forEach(([a,b])=>{const d=document.createElement('div');d.innerHTML='<b></b>';d.firstChild.textContent=b;d.append(a);$('stats').appendChild(d)});
+  const a=$('actions');a.innerHTML='';
+  if(r.fmt!=='png'){const l=document.createElement('a');l.className='btn main';l.href=base+encodeURIComponent(r.video);l.download=r.video;l.textContent=T().dl;a.appendChild(l)}
+  if(r.sheet){const s=document.createElement('a');s.className='btn';s.href=base+encodeURIComponent(r.sheet);s.download=r.sheet;s.textContent=T().dls;a.appendChild(s)}
+  const n=document.createElement('a');n.className='btn';n.href='/';n.textContent=T().again;a.appendChild(n);
+  const f=document.createElement('div');f.className='hint';f.style.width='100%';f.textContent=T().folder+': '+r.folder;a.appendChild(f);
+  const g=$('stills');g.innerHTML='';r.stills.forEach(n=>{const i=document.createElement('img');i.loading='lazy';i.src=base+encodeURIComponent(r.stills_dir)+'/'+encodeURIComponent(n);g.appendChild(i)});
+  if(r.sheet)$('sheet2').src=base+encodeURIComponent(r.sheet);
+  if(r.poster)$('poster').src=base+encodeURIComponent(r.poster);else{$('poster').style.display='none';$('posterh').style.display='none'}
+}
+renderT();
+fetch('/api/info').then(r=>r.json()).then(j=>{if(!j.blender)warn(T().noblender)});
+pollDevs();
+fetch('/api/options').then(r=>r.json()).then(j=>{OPT=j;segs.preset=['none'].concat(j.presets.map(p=>p.id));renderSegs();renderAdv()});
+
+// ambient swarm: a nod to what the app does; pauses for reduced-motion users
+(function(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const c=$('swarm'),x=c.getContext('2d');let W,H;
+  const sz=()=>{const d=devicePixelRatio||1;W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;x.setTransform(d,0,0,d,0,0)};addEventListener('resize',sz);sz();
+  const colors=['#ff8a3d','#4f8cff','#3ddcc0','#ff5a7a','#ffd166','#b48cff'];
+  const m=Array.from({length:42},(_,i)=>({x:Math.random()*W,y:Math.random()*H,tx:Math.random()*W,ty:Math.random()*H,c:colors[i%colors.length],s:.016+Math.random()*.03,w:Math.random()*90}));
+  (function draw(){
+    x.clearRect(0,0,W,H);
+    for(const p of m){
+      p.x+=(p.tx-p.x)*p.s;p.y+=(p.ty-p.y)*p.s;
+      if(Math.hypot(p.tx-p.x,p.ty-p.y)<18){p.w-=1;if(p.w<0){p.tx=Math.random()*W;p.ty=Math.random()*H;p.w=20+Math.random()*80}}
+      x.save();x.translate(p.x,p.y);x.globalAlpha=.3;x.fillStyle=p.c;x.beginPath();
+      x.moveTo(0,0);x.lineTo(0,18);x.lineTo(4.6,14.4);x.lineTo(7.7,21.6);x.lineTo(11,20.3);x.lineTo(7.9,13.2);x.lineTo(14,12.8);x.closePath();x.fill();x.restore();
+    }
+    requestAnimationFrame(draw)
+  })();
+})();
+</script>
+</body>
+</html>

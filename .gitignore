@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+*.nbi
+*.nbc
+*.blend1
+output/
+mousestorm-*/
+*.egg-info/
+build/
+dist/
+examples/*.blend
+.pytest_cache/
+examples/torture/

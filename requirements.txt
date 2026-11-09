@@ -1,0 +1,6 @@
+numpy>=2.0
+numba>=0.60
+skia-python>=120
+pillow>=10
+imageio-ffmpeg>=0.5
+tomli>=2; python_version<'3.11'

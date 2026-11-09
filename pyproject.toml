@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mousestorm"
+version = "3.1.0"
+description = "Turn any .blend file into a film of a swarm of mice building it."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+dependencies = ["numpy>=2.0", "numba>=0.60", "skia-python>=120", "pillow>=10", "imageio-ffmpeg>=0.5", "tomli>=2; python_version<'3.11'"]
+keywords = ["blender", "3d", "visualization", "timelapse", "cycles", "ai"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pyflakes>=3"]
+
+[project.urls]
+Homepage = "https://github.com/Dennisyu-m/Mousestorm"
+Issues = "https://github.com/Dennisyu-m/Mousestorm/issues"
+
+[project.scripts]
+mousestorm = "mousestorm.cli:main"
+
+[tool.setuptools]
+packages = ["mousestorm"]
+
+[tool.setuptools.package-data]
+mousestorm = ["bscripts/*.py", "web/*.html", "assets/fonts/*"]
